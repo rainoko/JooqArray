@@ -1,0 +1,59 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.3.RELEASE")
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+jar {
+  baseName = 'jooq-array'
+  version =  '0.1.0'
+}
+
+repositories {
+  mavenCentral()
+}
+
+def jooq_version = "3.9.0"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+  // tag::jetty[]
+  compile("org.springframework.boot:spring-boot-starter-web") {
+    exclude module: "spring-boot-starter-tomcat"
+  }
+  compile 'com.h2database:h2:1.4.186'
+
+  compile "org.jooq:jooq:$jooq_version"
+  compile "org.jooq:jooq-meta:$jooq_version"
+  compile "org.jooq:jooq-codegen:$jooq_version"
+  compile("org.springframework.boot:spring-boot-starter-jetty")
+  compile("org.springframework.boot:spring-boot-starter-jooq")
+  compile(group: 'com.zaxxer', name: 'HikariCP') {
+    exclude(module: 'tools')
+  }
+  // end::jetty[]
+  // tag::actuator[]
+  compile("org.springframework.boot:spring-boot-starter-actuator")
+  // end::actuator[]
+  testCompile("junit:junit")
+}
+
+ext.jooqConfigFileName = "jooq.xml"
+ext.jooqConfig = file jooqConfigFileName
+
+task jooqCodegen(type: JavaExec) {
+  inputs.files jooqConfig
+  main = 'org.jooq.util.GenerationTool'
+  classpath = sourceSets.main.compileClasspath
+  args = [jooqConfigFileName]
+}
